@@ -23,7 +23,6 @@ def _get_synthesizer():
 
 
 def _init_synthesizer():
-    from voicevox_core import AccelerationMode
     from voicevox_core.blocking import Onnxruntime, OpenJtalk, Synthesizer, VoiceModelFile
 
     onnx_path = os.environ["VOICEVOX_ONNXRUNTIME_PATH"]
@@ -35,7 +34,6 @@ def _init_synthesizer():
     synthesizer = Synthesizer(
         onnxruntime,
         OpenJtalk(dict_dir),
-        acceleration_mode=AccelerationMode.CPU,
     )
     with VoiceModelFile.open(vvm_path) as model:
         synthesizer.load_voice_model(model)
