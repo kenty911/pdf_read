@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import CompletedPanel from './components/CompletedPanel'
 import FailedPanel from './components/FailedPanel'
 import HistoryList from './components/HistoryList'
+import PlayerBar from './components/PlayerBar'
 import ProcessingPanel from './components/ProcessingPanel'
 import UploadPanel from './components/UploadPanel'
+import { PlayerProvider } from './context/PlayerContext'
 import type { Job, PanelState } from './types'
 
 const POLL_INTERVAL_MS = 3000
@@ -68,27 +70,30 @@ export default function App() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen flex flex-col">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <span className="text-xl font-bold text-gray-800">PDF to MP3</span>
-        <form action="/api/logout" method="post">
-          <button type="submit" className="text-sm text-gray-500 hover:text-gray-700 underline">
-            ログアウト
-          </button>
-        </form>
-      </header>
+    <PlayerProvider>
+      <div className="bg-gray-50 min-h-screen flex flex-col">
+        <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <span className="text-xl font-bold text-gray-800">PDF to MP3</span>
+          <form action="/api/logout" method="post">
+            <button type="submit" className="text-sm text-gray-500 hover:text-gray-700 underline">
+              ログアウト
+            </button>
+          </form>
+        </header>
 
-      <main className="flex-1 px-4 py-12">
-        <div className="max-w-lg mx-auto">
-          {panel === 'upload' && <UploadPanel onConvert={handleConvert} />}
-          {panel === 'processing' && <ProcessingPanel />}
-          {panel === 'completed' && currentJobId && (
-            <CompletedPanel jobId={currentJobId} onReset={resetToUpload} />
-          )}
-          {panel === 'failed' && <FailedPanel error={errorMsg} onRetry={resetToUpload} />}
-          <HistoryList jobs={history} />
-        </div>
-      </main>
-    </div>
+        <main className="flex-1 px-4 py-12">
+          <div className="max-w-lg mx-auto">
+            {panel === 'upload' && <UploadPanel onConvert={handleConvert} />}
+            {panel === 'processing' && <ProcessingPanel />}
+            {panel === 'completed' && currentJobId && (
+              <CompletedPanel jobId={currentJobId} onReset={resetToUpload} />
+            )}
+            {panel === 'failed' && <FailedPanel error={errorMsg} onRetry={resetToUpload} />}
+            <HistoryList jobs={history} />
+          </div>
+        </main>
+        <PlayerBar />
+      </div>
+    </PlayerProvider>
   )
 }
