@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
-import { PanelState, Job } from './types'
-import UploadPanel from './components/UploadPanel'
-import ProcessingPanel from './components/ProcessingPanel'
+import { useCallback, useEffect, useState } from 'react'
 import CompletedPanel from './components/CompletedPanel'
 import FailedPanel from './components/FailedPanel'
 import HistoryList from './components/HistoryList'
+import ProcessingPanel from './components/ProcessingPanel'
+import UploadPanel from './components/UploadPanel'
+import type { Job, PanelState } from './types'
 
 const POLL_INTERVAL_MS = 3000
 
@@ -24,7 +24,9 @@ export default function App() {
     }
   }, [])
 
-  useEffect(() => { loadHistory() }, [loadHistory])
+  useEffect(() => {
+    loadHistory()
+  }, [loadHistory])
 
   const handleConvert = async (file: File) => {
     const formData = new FormData()
@@ -39,7 +41,7 @@ export default function App() {
 
   const pollStatus = async (jobId: string) => {
     while (true) {
-      await new Promise(r => setTimeout(r, POLL_INTERVAL_MS))
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS))
       try {
         const resp = await fetch(`/api/jobs/${jobId}/status`)
         const data: Job = await resp.json()
@@ -80,12 +82,10 @@ export default function App() {
         <div className="max-w-lg mx-auto">
           {panel === 'upload' && <UploadPanel onConvert={handleConvert} />}
           {panel === 'processing' && <ProcessingPanel />}
-          {panel === 'completed' && (
-            <CompletedPanel jobId={currentJobId!} onReset={resetToUpload} />
+          {panel === 'completed' && currentJobId && (
+            <CompletedPanel jobId={currentJobId} onReset={resetToUpload} />
           )}
-          {panel === 'failed' && (
-            <FailedPanel error={errorMsg} onRetry={resetToUpload} />
-          )}
+          {panel === 'failed' && <FailedPanel error={errorMsg} onRetry={resetToUpload} />}
           <HistoryList jobs={history} />
         </div>
       </main>

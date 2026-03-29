@@ -1,4 +1,4 @@
-import { Job } from '../types'
+import type { Job } from '../types'
 
 interface Props {
   jobs: Job[]
@@ -24,7 +24,7 @@ export default function HistoryList({ jobs }: Props) {
         <p className="text-sm text-gray-400">変換履歴はありません</p>
       ) : (
         <div className="space-y-2">
-          {jobs.map(job => (
+          {jobs.map((job) => (
             <div
               key={job.id}
               className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3"
@@ -34,13 +34,13 @@ export default function HistoryList({ jobs }: Props) {
                   {job.original_filename ?? '不明'}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {job.created_at
-                    ? new Date(job.created_at).toLocaleString('ja-JP')
-                    : ''}
+                  {job.created_at ? new Date(job.created_at).toLocaleString('ja-JP') : ''}
                 </p>
               </div>
               <div className="flex items-center shrink-0 gap-2">
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_BADGE[job.status] ?? ''}`}>
+                <span
+                  className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_BADGE[job.status] ?? ''}`}
+                >
                   {STATUS_LABEL[job.status] ?? job.status}
                 </span>
                 {job.status === 'completed' && (
