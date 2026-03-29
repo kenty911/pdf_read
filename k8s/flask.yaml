@@ -45,10 +45,7 @@ spec:
             - name: SMTP_FROM
               value: "info@pdf-to-mp3.ken-ty.com"
             - name: SMTP_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: pdf-to-mp3-secret
-                  key: SMTP_HOST
+              value: "coffee-hajime.sakura.ne.jp"
             - name: SMTP_PASSWORD
               valueFrom:
                 secretKeyRef:

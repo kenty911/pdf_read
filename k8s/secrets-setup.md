@@ -14,8 +14,7 @@ export DATABASE_URL="mysql+pymysql://appuser:${DB_PASSWORD}@mysql:3306/pdftomp3"
 export RECAPTCHA_SECRET_KEY='<Google reCAPTCHA v3 シークレットキー>'
 export MYSQL_ROOT_PASSWORD='<MySQLルートパスワード>'
 export MYSQL_PASSWORD="${DB_PASSWORD}"
-export SMTP_HOST='<さくらクラウド SMTPホスト>'
-export SMTP_PASSWORD='<さくらクラウド メールパスワード>'
+export SMTP_PASSWORD='<さくらのメールボックス メールパスワード>'
 
 # 作成コマンド（環境変数を展開させるためにダブルクオートを使用）
 kubectl create secret generic pdf-to-mp3-secret \
@@ -25,7 +24,6 @@ kubectl create secret generic pdf-to-mp3-secret \
   --from-literal=RECAPTCHA_SECRET_KEY="$RECAPTCHA_SECRET_KEY" \
   --from-literal=MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
   --from-literal=MYSQL_PASSWORD="$MYSQL_PASSWORD" \
-  --from-literal=SMTP_HOST="$SMTP_HOST" \
   --from-literal=SMTP_PASSWORD="$SMTP_PASSWORD"
 ```
 
