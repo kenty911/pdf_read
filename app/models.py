@@ -12,6 +12,7 @@ class Job(db.Model):
         nullable=False,
         default="processing",
     )
+    original_filename = db.Column(db.String(255))
     pdf_path = db.Column(db.String(512))
     mp3_path = db.Column(db.String(512))
     error_message = db.Column(db.Text)
@@ -25,5 +26,6 @@ class Job(db.Model):
             "id": self.id,
             "status": self.status,
             "error": self.error_message,
+            "original_filename": self.original_filename,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

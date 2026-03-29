@@ -80,13 +80,28 @@ def create_job():
     upload_path = get_upload_path(job_id)
     file.save(str(upload_path))
 
-    job = Job(id=job_id, user_id=user_id, status="processing", pdf_path=str(upload_path))
+    original_filename = file.filename
+    job = Job(
+        id=job_id,
+        user_id=user_id,
+        status="processing",
+        pdf_path=str(upload_path),
+        original_filename=original_filename,
+    )
     db.session.add(job)
     db.session.commit()
 
     start_conversion(current_app._get_current_object(), job_id)
 
     return jsonify({"job_id": job_id}), 202
+
+
+@bp.route("/api/jobs")
+@require_auth
+def list_jobs():
+    user_id = get_user_id()
+    jobs = Job.query.filter_by(user_id=user_id).order_by(Job.created_at.desc()).all()
+    return jsonify([j.to_dict() for j in jobs])
 
 
 @bp.route("/api/jobs/<job_id>/status")
@@ -106,9 +121,13 @@ def download(job_id):
     if job.status != "completed":
         return jsonify({"error": "変換が完了していません"}), 400
 
+    from pathlib import Path
+    stem = Path(job.original_filename).stem if job.original_filename else "output"
+    download_name = stem + ".mp3"
+
     return send_file(
         job.mp3_path,
         as_attachment=True,
-        download_name="output.mp3",
+        download_name=download_name,
         mimetype="audio/mpeg",
     )
