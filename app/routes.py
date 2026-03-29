@@ -19,8 +19,8 @@ from werkzeug.security import generate_password_hash
 from . import db
 from .auth import get_user_id, require_auth, set_member_cookie, set_user_cookie, verify_recaptcha
 from .converter import start_conversion
-from .email import send_activation_email
-from .models import Job, PendingRegistration, User, new_uuid
+from .email import send_activation_email, send_password_reset_email
+from .models import Job, PasswordResetCode, PendingRegistration, User, new_uuid
 from .storage import get_upload_path
 
 bp = Blueprint("main", __name__)
@@ -173,6 +173,72 @@ def login():
     if guest_user_id and guest_user_id != user.id:
         Job.query.filter_by(user_id=guest_user_id).update({"user_id": user.id})
         db.session.commit()
+
+    resp = make_response(jsonify({"ok": True}))
+    set_member_cookie(resp, user.id)
+    return resp
+
+
+@bp.route("/api/auth/forgot-password", methods=["POST"])
+def forgot_password():
+    data = request.get_json() or {}
+    email = (data.get("email") or "").strip().lower()
+
+    if not email or "@" not in email:
+        return jsonify({"error": "メールアドレスが無効です"}), 400
+
+    user = User.query.filter_by(email=email, is_verified=True).first()
+    # 存在しない場合も同じレスポンスを返す（メール存在確認を防ぐ）
+    if user:
+        code = f"{random.randint(0, 999999):06d}"
+        expires_at = datetime.now(UTC).replace(tzinfo=None) + timedelta(minutes=30)
+
+        reset = db.session.get(PasswordResetCode, email)
+        if reset:
+            reset.code = code
+            reset.expires_at = expires_at
+        else:
+            reset = PasswordResetCode(email=email, code=code, expires_at=expires_at)
+            db.session.add(reset)
+        db.session.commit()
+
+        try:
+            send_password_reset_email(email, code)
+        except Exception:
+            return jsonify({"error": "メール送信に失敗しました"}), 500
+
+    return jsonify({"ok": True})
+
+
+@bp.route("/api/auth/reset-password", methods=["POST"])
+def reset_password():
+    data = request.get_json() or {}
+    email = (data.get("email") or "").strip().lower()
+    code = (data.get("code") or "").strip()
+    new_password = data.get("password") or ""
+
+    if len(new_password) < 8:
+        return jsonify({"error": "パスワードは8文字以上で入力してください"}), 400
+
+    reset = db.session.get(PasswordResetCode, email)
+    if not reset:
+        return jsonify({"error": "コードが無効です。再度メールアドレスを入力してください"}), 400
+
+    if reset.expires_at < datetime.now(UTC).replace(tzinfo=None):
+        db.session.delete(reset)
+        db.session.commit()
+        return jsonify({"error": "コードの有効期限が切れています。再度お試しください"}), 400
+
+    if reset.code != code:
+        return jsonify({"error": "コードが正しくありません"}), 400
+
+    user = User.query.filter_by(email=email, is_verified=True).first()
+    if not user:
+        return jsonify({"error": "ユーザーが見つかりません"}), 404
+
+    user.set_password(new_password)
+    db.session.delete(reset)
+    db.session.commit()
 
     resp = make_response(jsonify({"ok": True}))
     set_member_cookie(resp, user.id)

@@ -32,6 +32,15 @@ class PendingRegistration(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
 
 
+class PasswordResetCode(db.Model):
+    __tablename__ = "password_reset_codes"
+
+    email = db.Column(db.String(255), primary_key=True)
+    code = db.Column(db.String(6), nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+
+
 class Job(db.Model):
     __tablename__ = "jobs"
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-type ModalView = 'login' | 'register' | 'activate'
+type ModalView = 'login' | 'register' | 'activate' | 'forgot' | 'reset'
 
 interface Props {
   initialView: 'login' | 'register'
@@ -12,6 +12,7 @@ export default function AuthModal({ initialView, onClose, onSuccess }: Props) {
   const [view, setView] = useState<ModalView>(initialView)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -85,11 +86,61 @@ export default function AuthModal({ initialView, onClose, onSuccess }: Props) {
     }
   }
 
-  const switchView = (next: 'login' | 'register') => {
+  const handleForgot = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      const resp = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) {
+        setError(data.error || 'エラーが発生しました')
+        return
+      }
+      setCode('')
+      setNewPassword('')
+      setView('reset')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReset = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      const resp = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code, password: newPassword }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) {
+        setError(data.error || 'エラーが発生しました')
+        return
+      }
+      onSuccess()
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const switchTab = (next: 'login' | 'register') => {
     setView(next)
     setError('')
     setPassword('')
     setCode('')
+    setNewPassword('')
+  }
+
+  const goToForgot = () => {
+    setView('forgot')
+    setError('')
+    setCode('')
+    setNewPassword('')
   }
 
   return (
@@ -128,9 +179,16 @@ export default function AuthModal({ initialView, onClose, onSuccess }: Props) {
           </svg>
         </button>
 
-        {view === 'activate' ? (
-          <ActivateView
-            email={email}
+        {view === 'activate' && (
+          <CodeInputView
+            title="確認コードを入力"
+            description={
+              <>
+                <span className="font-medium text-gray-700">{email}</span>{' '}
+                に6桁のコードを送信しました。
+              </>
+            }
+            submitLabel="会員登録を完了"
             code={code}
             error={error}
             loading={loading}
@@ -141,15 +199,136 @@ export default function AuthModal({ initialView, onClose, onSuccess }: Props) {
               handleRegister()
             }}
           />
-        ) : (
+        )}
+
+        {view === 'forgot' && (
+          <div>
+            <button
+              type="button"
+              onClick={() => switchTab('login')}
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4"
+            >
+              ← ログインに戻る
+            </button>
+            <h2 className="text-lg font-bold text-gray-900 mb-1">パスワードを再設定</h2>
+            <p className="text-sm text-gray-500 mb-5">
+              登録済みのメールアドレスに確認コードを送信します。
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                  htmlFor="forgot-email"
+                >
+                  メールアドレス
+                </label>
+                <input
+                  id="forgot-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="example@example.com"
+                  autoComplete="email"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleForgot()
+                  }}
+                />
+              </div>
+              {error && <ErrorBox message={error} />}
+              <button
+                type="button"
+                onClick={handleForgot}
+                disabled={loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg transition-colors text-sm"
+              >
+                {loading ? '送信中...' : '確認コードを送信'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {view === 'reset' && (
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 mb-1">新しいパスワードを設定</h2>
+            <p className="text-sm text-gray-500 mb-5">
+              <span className="font-medium text-gray-700">{email}</span>{' '}
+              に送信したコードと新しいパスワードを入力してください。
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                  htmlFor="reset-code"
+                >
+                  確認コード
+                </label>
+                <input
+                  id="reset-code"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="000000"
+                />
+              </div>
+              <div>
+                <label
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                  htmlFor="reset-password"
+                >
+                  新しいパスワード <span className="text-xs text-gray-400">（8文字以上）</span>
+                </label>
+                <input
+                  id="reset-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleReset()
+                  }}
+                />
+              </div>
+              {error && <ErrorBox message={error} />}
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={loading || code.length !== 6 || newPassword.length < 8}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg transition-colors text-sm"
+              >
+                {loading ? '処理中...' : 'パスワードを再設定'}
+              </button>
+              <p className="text-center text-xs text-gray-400">
+                コードが届かない場合は{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError('')
+                    handleForgot()
+                  }}
+                  disabled={loading}
+                  className="text-blue-600 hover:underline disabled:opacity-50"
+                >
+                  再送信
+                </button>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {(view === 'login' || view === 'register') && (
           <>
-            {/* タブ */}
             <div className="flex border-b border-gray-200 mb-6">
               {(['register', 'login'] as const).map((v) => (
                 <button
                   key={v}
                   type="button"
-                  onClick={() => switchView(v)}
+                  onClick={() => switchTab(v)}
                   className={`flex-1 pb-3 text-sm font-medium transition-colors ${
                     view === v
                       ? 'border-b-2 border-blue-600 text-blue-600'
@@ -203,11 +382,19 @@ export default function AuthModal({ initialView, onClose, onSuccess }: Props) {
                 />
               </div>
 
-              {error && (
-                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                  {error}
-                </p>
+              {view === 'login' && (
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={goToForgot}
+                    className="text-xs text-blue-600 hover:underline"
+                  >
+                    パスワードを忘れた
+                  </button>
+                </div>
               )}
+
+              {error && <ErrorBox message={error} />}
 
               <button
                 type="button"
@@ -225,8 +412,18 @@ export default function AuthModal({ initialView, onClose, onSuccess }: Props) {
   )
 }
 
-interface ActivateViewProps {
-  email: string
+function ErrorBox({ message }: { message: string }) {
+  return (
+    <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+      {message}
+    </p>
+  )
+}
+
+interface CodeInputViewProps {
+  title: string
+  description: React.ReactNode
+  submitLabel: string
   code: string
   error: string
   loading: boolean
@@ -235,22 +432,21 @@ interface ActivateViewProps {
   onResend: () => void
 }
 
-function ActivateView({
-  email,
+function CodeInputView({
+  title,
+  description,
+  submitLabel,
   code,
   error,
   loading,
   onCodeChange,
   onSubmit,
   onResend,
-}: ActivateViewProps) {
+}: CodeInputViewProps) {
   return (
     <div>
-      <h2 className="text-lg font-bold text-gray-900 mb-1">確認コードを入力</h2>
-      <p className="text-sm text-gray-500 mb-5">
-        <span className="font-medium text-gray-700">{email}</span> に6桁のコードを送信しました。
-      </p>
-
+      <h2 className="text-lg font-bold text-gray-900 mb-1">{title}</h2>
+      <p className="text-sm text-gray-500 mb-5">{description}</p>
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="auth-code">
@@ -270,22 +466,15 @@ function ActivateView({
             }}
           />
         </div>
-
-        {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-            {error}
-          </p>
-        )}
-
+        {error && <ErrorBox message={error} />}
         <button
           type="button"
           onClick={onSubmit}
           disabled={loading || code.length !== 6}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg transition-colors text-sm"
         >
-          {loading ? '確認中...' : '会員登録を完了'}
+          {loading ? '確認中...' : submitLabel}
         </button>
-
         <p className="text-center text-xs text-gray-400">
           コードが届かない場合は{' '}
           <button
