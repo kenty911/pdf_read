@@ -23,5 +23,20 @@ def create_app() -> Flask:
         from .routes import bp
         app.register_blueprint(bp)
         db.create_all()
+        _migrate(db)
 
     return app
+
+
+def _migrate(db):
+    """既存テーブルへのカラム追加など、create_all では対応できない差分を適用する。"""
+    migrations = [
+        "ALTER TABLE jobs ADD COLUMN original_filename VARCHAR(255)",
+    ]
+    from sqlalchemy import text
+    for sql in migrations:
+        try:
+            db.session.execute(text(sql))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
