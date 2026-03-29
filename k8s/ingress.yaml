@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: pdf-to-mp3.example.com   # 要変更
+    - host: pdf-to-mp3.ken-ty.com
       http:
         paths:
           - path: /

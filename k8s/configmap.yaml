@@ -4,7 +4,7 @@ metadata:
   name: pdf-to-mp3-config
   namespace: pdf-to-mp3
 data:
-  RECAPTCHA_SITE_KEY: "YOUR_RECAPTCHA_SITE_KEY"   # 要変更
+  RECAPTCHA_SITE_KEY: "6LckdpwsAAAAAAgdQ_-BKQUuOWkO5cO4R98WP8sB"
   VOICEVOX_ONNXRUNTIME_PATH: "/app/voicevox/onnxruntime/lib/libvoicevox_onnxruntime.so.1.17.3"
   VOICEVOX_DICT_DIR: "/app/voicevox/dict/open_jtalk_dic_utf_8-1.11"
   VOICEVOX_VVM_PATH: "/app/voicevox/models/vvms/0.vvm"
