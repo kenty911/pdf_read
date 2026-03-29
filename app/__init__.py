@@ -1,8 +1,10 @@
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 db = SQLAlchemy()
+_migrate = Migrate()
 
 
 def create_app() -> Flask:
@@ -18,25 +20,12 @@ def create_app() -> Flask:
     app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # 100MB
 
     db.init_app(app)
+    _migrate.init_app(app, db)
 
     with app.app_context():
+        from flask_migrate import upgrade
         from .routes import bp
         app.register_blueprint(bp)
-        db.create_all()
-        _migrate(db)
+        upgrade()
 
     return app
-
-
-def _migrate(db):
-    """既存テーブルへのカラム追加など、create_all では対応できない差分を適用する。"""
-    migrations = [
-        "ALTER TABLE jobs ADD COLUMN original_filename VARCHAR(255)",
-    ]
-    from sqlalchemy import text
-    for sql in migrations:
-        try:
-            db.session.execute(text(sql))
-            db.session.commit()
-        except Exception:
-            db.session.rollback()

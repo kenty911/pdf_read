@@ -41,10 +41,11 @@ RUN uv sync --no-dev
 # VoiceVox バイナリをコピー
 COPY --from=voicevox-downloader /voicevox /app/voicevox
 
-COPY app/       /app/app/
-COPY templates/ /app/templates/
-COPY static/    /app/static/
-COPY wsgi.py    /app/wsgi.py
+COPY app/        /app/app/
+COPY migrations/ /app/migrations/
+COPY templates/  /app/templates/
+COPY static/     /app/static/
+COPY wsgi.py     /app/wsgi.py
 
 ENV PATH="/app/.venv/bin:$PATH"
 
