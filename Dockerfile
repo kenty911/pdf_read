@@ -1,7 +1,7 @@
 # Stage 1: VoiceVox バイナリを直接ダウンロード（対話不要）
 FROM debian:bookworm-slim AS voicevox-downloader
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
 # ONNX Runtime (CPU, Linux x64)
