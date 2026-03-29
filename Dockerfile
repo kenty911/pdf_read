@@ -1,22 +1,3 @@
-# Stage 1: VoiceVox バイナリをダウンロード
-# expect で疑似TTYを作成し、ライセンス同意プロンプトを自動応答する
-FROM python:3.12-slim AS voicevox-downloader
-RUN apt-get update && apt-get install -y --no-install-recommends curl expect \
-    && rm -rf /var/lib/apt/lists/*
-WORKDIR /voicevox
-RUN curl -sSfL \
-    "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.2/download-linux-x64" \
-    -o download \
-    && chmod +x download
-RUN echo 'set timeout -1' > /tmp/agree.exp \
-    && echo 'spawn ./download -o ./assets --exclude c-api' >> /tmp/agree.exp \
-    && echo 'after 3000' >> /tmp/agree.exp \
-    && echo 'send "q"' >> /tmp/agree.exp \
-    && echo 'expect -re {\[y,n,r\]} { send "y\r" }' >> /tmp/agree.exp \
-    && echo 'expect eof' >> /tmp/agree.exp \
-    && expect /tmp/agree.exp
-
-# Stage 2: アプリケーション
 FROM python:3.12-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -31,15 +12,16 @@ WORKDIR /app
 COPY pyproject.toml ./
 RUN uv sync --no-dev
 
-# VoiceVox バイナリをコピー
-COPY --from=voicevox-downloader /voicevox/assets /app/voicevox/
-
 COPY app/       /app/app/
 COPY templates/ /app/templates/
 COPY static/    /app/static/
 COPY wsgi.py    /app/wsgi.py
 
 ENV PATH="/app/.venv/bin:$PATH"
+
+# VoiceVox バイナリは hostPath volume でマウント
+# k8s: /data/voicevox → /app/voicevox
+# ローカル開発: docker-compose の volumes で同様にマウント
 
 EXPOSE 8000
 

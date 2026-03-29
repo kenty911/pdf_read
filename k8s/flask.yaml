@@ -41,6 +41,9 @@ spec:
           volumeMounts:
             - name: app-data
               mountPath: /data
+            - name: voicevox
+              mountPath: /app/voicevox
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /
@@ -58,6 +61,10 @@ spec:
         - name: app-data
           persistentVolumeClaim:
             claimName: app-data
+        - name: voicevox
+          hostPath:
+            path: /home/kento/pdf_to_wav/example/python
+            type: Directory
 ---
 apiVersion: v1
 kind: Service
