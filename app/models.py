@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import UTC, datetime
+
 from . import db
 
 
@@ -16,9 +17,11 @@ class Job(db.Model):
     pdf_path = db.Column(db.String(512))
     mp3_path = db.Column(db.String(512))
     error_message = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+        db.DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     def to_dict(self):

@@ -80,7 +80,7 @@ def _run_conversion(app, job_id: str) -> None:
     with app.app_context():
         from . import db
         from .models import Job
-        from .pdf_processor import extract_text_from_pdf, clean_text_for_speech
+        from .pdf_processor import clean_text_for_speech, extract_text_from_pdf
         from .storage import get_output_path
 
         job = db.session.get(Job, job_id)
@@ -105,7 +105,7 @@ def _run_conversion(app, job_id: str) -> None:
 
             job.status = "completed"
             job.mp3_path = str(output_path)
-            logger.info(f"変換完了: job_id={job_id} size={len(mp3_data)/1024:.1f}KB")
+            logger.info(f"変換完了: job_id={job_id} size={len(mp3_data) / 1024:.1f}KB")
 
         except Exception as e:
             logger.exception(f"変換エラー: job_id={job_id}")
@@ -116,7 +116,5 @@ def _run_conversion(app, job_id: str) -> None:
 
 
 def start_conversion(app, job_id: str) -> None:
-    thread = threading.Thread(
-        target=_run_conversion, args=(app, job_id), daemon=True
-    )
+    thread = threading.Thread(target=_run_conversion, args=(app, job_id), daemon=True)
     thread.start()

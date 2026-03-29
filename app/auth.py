@@ -1,8 +1,9 @@
 import os
 from functools import wraps
-from flask import request, jsonify, current_app
-from itsdangerous import URLSafeSerializer, BadSignature
+
 import requests as http_requests
+from flask import current_app, jsonify, request
+from itsdangerous import BadSignature, URLSafeSerializer
 
 COOKIE_NAME = "user_id"
 COOKIE_MAX_AGE = 315360000  # 約10年

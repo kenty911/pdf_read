@@ -1,5 +1,6 @@
-import re
 import logging
+import re
+
 import pdfplumber
 
 logger = logging.getLogger(__name__)

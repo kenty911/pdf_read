@@ -1,7 +1,8 @@
 import os
+
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 _migrate = Migrate()
@@ -24,7 +25,9 @@ def create_app() -> Flask:
 
     with app.app_context():
         from flask_migrate import upgrade
+
         from .routes import bp
+
         app.register_blueprint(bp)
         upgrade()
 

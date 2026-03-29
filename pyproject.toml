@@ -35,3 +35,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.ty.environment]
 python-version = "3.12"
+
+[tool.ty.rules]
+# Flask-SQLAlchemy の declarative base は動的生成のため ty が MRO を解決できない
+unsupported-base = "ignore"

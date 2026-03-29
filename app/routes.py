@@ -7,6 +7,7 @@ from flask import (
     jsonify,
     make_response,
     redirect,
+    render_template,
     request,
     send_file,
     url_for,
@@ -33,8 +34,9 @@ def lp():
 def app_page():
     if get_user_id() is None:
         return redirect(url_for("main.lp"))
-    dist_dir = os.path.join(current_app.static_folder, "dist")
-    return send_file(os.path.join(dist_dir, "index.html"))
+    static_folder = current_app.static_folder
+    assert static_folder is not None
+    return send_file(os.path.join(static_folder, "dist", "index.html"))
 
 
 @bp.route("/api/auth/verify", methods=["POST"])
@@ -91,7 +93,10 @@ def create_job():
     db.session.add(job)
     db.session.commit()
 
-    start_conversion(current_app._get_current_object(), job_id)
+    from flask import Flask
+
+    app: Flask = current_app  # type: ignore[assignment]
+    start_conversion(app, job_id)
 
     return jsonify({"job_id": job_id}), 202
 
@@ -122,6 +127,7 @@ def download(job_id):
         return jsonify({"error": "変換が完了していません"}), 400
 
     from pathlib import Path
+
     stem = Path(job.original_filename).stem if job.original_filename else "output"
     download_name = stem + ".mp3"
 
