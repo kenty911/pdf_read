@@ -49,6 +49,10 @@ jobs:
         run: npx biome ci src/
         working-directory: frontend
 
+      - name: tsc type check
+        run: npx tsc --noEmit
+        working-directory: frontend
+
   build-and-push:
     needs: [lint-python, lint-frontend]
     runs-on: ubuntu-latest

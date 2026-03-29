@@ -17,3 +17,7 @@ pre-commit:
       root: frontend
       run: npx biome check --write src/
       stage_fixed: true
+    tsc:
+      glob: "frontend/**/*.{ts,tsx}"
+      root: frontend
+      run: npx tsc --noEmit
