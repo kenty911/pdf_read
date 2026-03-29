@@ -8,15 +8,11 @@ RUN curl -sSfL \
     "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.2/download-linux-x64" \
     -o download \
     && chmod +x download
-RUN expect -c '
-  set timeout 300
-  spawn ./download -o ./assets --exclude c-api
-  expect {
-    -re {\[y,n,r\]} { send "y\r"; exp_continue }
-    eof
-  }
-  wait
-'
+RUN echo 'set timeout 300' > /tmp/agree.exp \
+    && echo 'spawn ./download -o ./assets --exclude c-api' >> /tmp/agree.exp \
+    && echo 'expect -re {\[y,n,r\]} { send "y\r"; exp_continue }' >> /tmp/agree.exp \
+    && echo 'expect eof' >> /tmp/agree.exp \
+    && expect /tmp/agree.exp
 
 # Stage 2: アプリケーション
 FROM python:3.12-slim
