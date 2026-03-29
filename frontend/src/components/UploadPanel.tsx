@@ -20,7 +20,7 @@ export default function UploadPanel({ onConvert }: Props) {
     setError('')
   }
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: DragEvent<HTMLButtonElement>) => {
     e.preventDefault()
     setDragging(false)
     if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0])
