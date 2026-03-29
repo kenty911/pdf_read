@@ -7,7 +7,7 @@ RUN curl -sSfL \
     "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.2/download-linux-x64" \
     -o download \
     && chmod +x download \
-    && ./download -o ./assets --exclude c-api
+    && echo y | ./download -o ./assets --exclude c-api
 
 # Stage 2: アプリケーション
 FROM python:3.12-slim
