@@ -1,0 +1,16 @@
+pre-commit:
+  parallel: true
+  commands:
+    ruff-lint:
+      glob: "app/**/*.py"
+      run: uv run ruff check app/
+    ruff-format:
+      glob: "app/**/*.py"
+      run: uv run ruff format --check app/
+    ty:
+      glob: "app/**/*.py"
+      run: uv run ty check app/
+    biome:
+      glob: "frontend/src/**/*.{ts,tsx}"
+      root: frontend
+      run: npx biome ci src/

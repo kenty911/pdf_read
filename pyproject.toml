@@ -22,6 +22,7 @@ dependencies = [
 [tool.uv]
 package = false
 dev-dependencies = [
+    "lefthook>=1.11",
     "ruff>=0.9",
     "ty>=0.0.1a1",
 ]
