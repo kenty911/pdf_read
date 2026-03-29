@@ -23,7 +23,16 @@ RUN mkdir -p /voicevox/dict \
       "https://downloads.sourceforge.net/project/open-jtalk/Dictionary/open_jtalk_dic-1.11/open_jtalk_dic_utf_8-1.11.tar.gz" \
       | tar -xzf - -C /voicevox/dict
 
-# Stage 2: アプリケーション
+# Stage 2: フロントエンドビルド
+FROM node:20-slim AS frontend-builder
+
+WORKDIR /frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+# Stage 3: アプリケーション
 FROM python:3.12-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -40,6 +49,9 @@ RUN uv sync --frozen --no-dev
 
 # VoiceVox バイナリをコピー
 COPY --from=voicevox-downloader /voicevox /app/voicevox
+
+# フロントエンドビルド成果物をコピー
+COPY --from=frontend-builder /frontend/dist /app/static/dist
 
 COPY app/        /app/app/
 COPY migrations/ /app/migrations/

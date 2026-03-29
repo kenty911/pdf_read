@@ -7,7 +7,6 @@ from flask import (
     jsonify,
     make_response,
     redirect,
-    render_template,
     request,
     send_file,
     url_for,
@@ -34,7 +33,8 @@ def lp():
 def app_page():
     if get_user_id() is None:
         return redirect(url_for("main.lp"))
-    return render_template("app.html")
+    dist_dir = os.path.join(current_app.static_folder, "dist")
+    return send_file(os.path.join(dist_dir, "index.html"))
 
 
 @bp.route("/api/auth/verify", methods=["POST"])
