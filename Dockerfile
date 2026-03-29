@@ -51,7 +51,7 @@ RUN uv sync --frozen --no-dev
 COPY --from=voicevox-downloader /voicevox /app/voicevox
 
 # フロントエンドビルド成果物をコピー
-COPY --from=frontend-builder /frontend/dist /app/static/dist
+COPY --from=frontend-builder /static/dist /app/static/dist
 
 COPY app/        /app/app/
 COPY migrations/ /app/migrations/
