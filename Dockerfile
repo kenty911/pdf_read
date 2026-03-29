@@ -1,3 +1,29 @@
+# Stage 1: VoiceVox バイナリを直接ダウンロード（対話不要）
+FROM debian:bookworm-slim AS voicevox-downloader
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# ONNX Runtime (CPU, Linux x64)
+RUN mkdir -p /tmp/ort /voicevox/onnxruntime \
+    && curl -fsSL \
+      "https://github.com/VOICEVOX/onnxruntime-builder/releases/download/voicevox_onnxruntime-1.17.3/voicevox_onnxruntime-linux-x64-1.17.3.tgz" \
+      | tar -xzf - --strip-components=1 -C /tmp/ort \
+    && mv /tmp/ort/lib /voicevox/onnxruntime/lib
+
+# Voice model (0.vvm のみ使用)
+RUN mkdir -p /voicevox/models/vvms \
+    && curl -fsSL \
+      "https://github.com/VOICEVOX/voicevox_vvm/releases/download/0.16.2/0.vvm" \
+      -o /voicevox/models/vvms/0.vvm
+
+# OpenJTalk 辞書
+RUN mkdir -p /voicevox/dict \
+    && curl -fsSL \
+      "https://downloads.sourceforge.net/project/open-jtalk/Dictionary/open_jtalk_dic-1.11/open_jtalk_dic_utf_8-1.11.tar.gz" \
+      | tar -xzf - -C /voicevox/dict
+
+# Stage 2: アプリケーション
 FROM python:3.12-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -12,16 +38,15 @@ WORKDIR /app
 COPY pyproject.toml ./
 RUN uv sync --no-dev
 
+# VoiceVox バイナリをコピー
+COPY --from=voicevox-downloader /voicevox /app/voicevox
+
 COPY app/       /app/app/
 COPY templates/ /app/templates/
 COPY static/    /app/static/
 COPY wsgi.py    /app/wsgi.py
 
 ENV PATH="/app/.venv/bin:$PATH"
-
-# VoiceVox バイナリは hostPath volume でマウント
-# k8s: /data/voicevox → /app/voicevox
-# ローカル開発: docker-compose の volumes で同様にマウント
 
 EXPOSE 8000
 
