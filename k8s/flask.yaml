@@ -38,6 +38,22 @@ spec:
                 secretKeyRef:
                   name: pdf-to-mp3-secret
                   key: RECAPTCHA_SECRET_KEY
+            - name: SMTP_PORT
+              value: "587"
+            - name: SMTP_USER
+              value: "info@pdf-to-mp3.ken-ty.com"
+            - name: SMTP_FROM
+              value: "info@pdf-to-mp3.ken-ty.com"
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: pdf-to-mp3-secret
+                  key: SMTP_HOST
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pdf-to-mp3-secret
+                  key: SMTP_PASSWORD
           volumeMounts:
             - name: app-data
               mountPath: /data
