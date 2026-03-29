@@ -7,8 +7,14 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    cert-manager.io/cluster-issuer: "letsencrypt-pdf-to-mp3-ken-ty-com"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - pdf-to-mp3.ken-ty.com
+      secretName: pdf-to-mp3-ken-ty-com-tls
   rules:
     - host: pdf-to-mp3.ken-ty.com
       http:

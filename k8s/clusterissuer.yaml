@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-pdf-to-mp3-ken-ty-com
+spec:
+  acme:
+    email: ken.314.papa@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-pdf-to-mp3-ken-ty-com
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: nginx
