@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF to MP3</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <header class="bg-white border-b border-gray-200 px-6 py-4">
+    <span class="text-xl font-bold text-gray-800">PDF to MP3</span>
+  </header>
+
+  <main class="flex-1 flex items-center justify-center px-4">
+    <div class="max-w-lg w-full text-center">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">PDFをMP3に変換</h1>
+      <p class="text-gray-500 text-lg mb-8">
+        PDFファイルをアップロードするだけで、<br />日本語テキストを音声に変換してダウンロードできます。
+      </p>
+
+      <div id="error-msg" class="hidden mb-4 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3"></div>
+
+      <button
+        id="start-btn"
+        class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+      >
+        <span>始める</span>
+      </button>
+
+      <p class="mt-6 text-xs text-gray-400">
+        このサービスはreCAPTCHA v3により保護されています。
+      </p>
+    </div>
+  </main>
+
+  <footer class="text-center py-4 text-xs text-gray-400">
+    &copy; 2025 PDF to MP3
+  </footer>
+
+  <script>
+    const SITE_KEY = "{{ recaptcha_site_key }}";
+    const btn = document.getElementById("start-btn");
+    const errorMsg = document.getElementById("error-msg");
+
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      btn.textContent = "確認中...";
+      errorMsg.classList.add("hidden");
+
+      try {
+        const token = await new Promise((resolve, reject) => {
+          grecaptcha.ready(() => {
+            grecaptcha.execute(SITE_KEY, { action: "start" }).then(resolve).catch(reject);
+          });
+        });
+
+        const resp = await fetch("/api/auth/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+
+        if (!resp.ok) {
+          const data = await resp.json();
+          throw new Error(data.error || "認証に失敗しました");
+        }
+
+        window.location.href = "/app";
+      } catch (err) {
+        errorMsg.textContent = err.message;
+        errorMsg.classList.remove("hidden");
+        btn.disabled = false;
+        btn.textContent = "始める";
+      }
+    });
+  </script>
+</body>
+</html>

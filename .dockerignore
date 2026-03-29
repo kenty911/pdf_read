@@ -1,0 +1,11 @@
+.git
+.env
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+.venv
+uv.lock
+docker-compose.yml
+k8s/
+Makefile

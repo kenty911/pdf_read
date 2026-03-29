@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF to MP3 - 変換</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+    <span class="text-xl font-bold text-gray-800">PDF to MP3</span>
+    <form action="/api/logout" method="post">
+      <button class="text-sm text-gray-500 hover:text-gray-700 underline">ログアウト</button>
+    </form>
+  </header>
+
+  <main class="flex-1 flex items-center justify-center px-4 py-12">
+    <div class="max-w-lg w-full">
+
+      <!-- アップロードパネル -->
+      <div id="panel-upload">
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">PDFをアップロード</h2>
+        <p class="text-gray-500 mb-6">PDFファイルを選択してMP3に変換します。</p>
+
+        <div
+          id="drop-zone"
+          class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+        >
+          <svg class="mx-auto mb-3 w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <p class="text-gray-600 font-medium">ここにドロップ、または</p>
+          <label class="mt-2 inline-block cursor-pointer text-blue-600 hover:underline font-semibold">
+            ファイルを選択
+            <input id="file-input" type="file" accept=".pdf" class="hidden" />
+          </label>
+          <p id="file-name" class="mt-2 text-sm text-gray-400"></p>
+        </div>
+
+        <div id="upload-error" class="hidden mt-3 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3"></div>
+
+        <button
+          id="convert-btn"
+          disabled
+          class="mt-6 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
+        >
+          MP3に変換
+        </button>
+      </div>
+
+      <!-- 変換中パネル -->
+      <div id="panel-processing" class="hidden text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
+          <svg class="w-8 h-8 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">変換中...</h2>
+        <p class="text-gray-500">PDFを音声に変換しています。しばらくお待ちください。</p>
+      </div>
+
+      <!-- 完了パネル -->
+      <div id="panel-completed" class="hidden text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
+          <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">変換完了！</h2>
+        <p class="text-gray-500 mb-6">MP3ファイルの準備ができました。</p>
+        <a
+          id="download-link"
+          href="#"
+          class="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+        >
+          MP3をダウンロード
+        </a>
+        <button
+          id="reset-btn"
+          class="block mx-auto mt-4 text-sm text-gray-500 hover:text-gray-700 underline"
+        >
+          別のPDFを変換する
+        </button>
+      </div>
+
+      <!-- エラーパネル -->
+      <div id="panel-failed" class="hidden text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
+          <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">変換に失敗しました</h2>
+        <p id="error-detail" class="text-gray-500 mb-6"></p>
+        <button
+          id="retry-btn"
+          class="inline-block bg-gray-600 hover:bg-gray-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+        >
+          やり直す
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

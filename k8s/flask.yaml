@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask
+  namespace: pdf-to-mp3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask
+  template:
+    metadata:
+      labels:
+        app: flask
+    spec:
+      containers:
+        - name: flask
+          image: ghcr.io/YOUR_GITHUB_ORG/pdf-to-mp3:latest  # CI により自動更新
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: pdf-to-mp3-config
+          env:
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pdf-to-mp3-secret
+                  key: FLASK_SECRET_KEY
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: pdf-to-mp3-secret
+                  key: DATABASE_URL
+            - name: RECAPTCHA_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pdf-to-mp3-secret
+                  key: RECAPTCHA_SECRET_KEY
+          volumeMounts:
+            - name: app-data
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 4000m
+              memory: 8Gi    # VoiceVox + 変換処理はメモリを多く使う
+      volumes:
+        - name: app-data
+          persistentVolumeClaim:
+            claimName: app-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask
+  namespace: pdf-to-mp3
+spec:
+  selector:
+    app: flask
+  ports:
+    - port: 80
+      targetPort: 8000
