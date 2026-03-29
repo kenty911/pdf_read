@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import AuthModal from './components/AuthModal'
 import CompletedPanel from './components/CompletedPanel'
 import FailedPanel from './components/FailedPanel'
 import HistoryList from './components/HistoryList'
@@ -6,7 +7,7 @@ import PlayerBar from './components/PlayerBar'
 import ProcessingPanel from './components/ProcessingPanel'
 import UploadPanel from './components/UploadPanel'
 import { PlayerProvider } from './context/PlayerContext'
-import type { Job, PanelState } from './types'
+import type { Job, PanelState, UserInfo } from './types'
 
 const POLL_INTERVAL_MS = 3000
 
@@ -15,6 +16,8 @@ export default function App() {
   const [currentJobId, setCurrentJobId] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
   const [history, setHistory] = useState<Job[]>([])
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
+  const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null)
 
   const loadHistory = useCallback(async () => {
     try {
@@ -26,9 +29,20 @@ export default function App() {
     }
   }, [])
 
+  const loadUserInfo = useCallback(async () => {
+    try {
+      const resp = await fetch('/api/auth/me')
+      if (!resp.ok) return
+      setUserInfo(await resp.json())
+    } catch {
+      // ignore
+    }
+  }, [])
+
   useEffect(() => {
     loadHistory()
-  }, [loadHistory])
+    loadUserInfo()
+  }, [loadHistory, loadUserInfo])
 
   const handleConvert = async (file: File) => {
     const formData = new FormData()
@@ -69,20 +83,64 @@ export default function App() {
     setPanel('upload')
   }
 
+  const handleAuthSuccess = () => {
+    window.location.reload()
+  }
+
   return (
     <PlayerProvider>
       <div className="bg-gray-50 min-h-screen flex flex-col">
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <span className="text-xl font-bold text-gray-800">PDF to MP3</span>
-          <form action="/api/logout" method="post">
-            <button type="submit" className="text-sm text-gray-500 hover:text-gray-700 underline">
-              ログアウト
-            </button>
-          </form>
+          <div className="flex items-center gap-3">
+            {userInfo?.type === 'member' ? (
+              <>
+                <span className="text-sm text-gray-500 hidden sm:block">{userInfo.email}</span>
+                <form action="/api/logout" method="post">
+                  <button
+                    type="submit"
+                    className="text-sm text-gray-500 hover:text-gray-700 underline"
+                  >
+                    ログアウト
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setAuthModal('login')}
+                  className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  ログイン
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAuthModal('register')}
+                  className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-1.5 rounded-lg transition-colors"
+                >
+                  会員登録
+                </button>
+              </>
+            )}
+          </div>
         </header>
 
         <main className="flex-1 px-4 py-12">
           <div className="max-w-lg mx-auto">
+            {userInfo?.type === 'guest' && (
+              <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-700">
+                現在ゲストとして利用中です。{' '}
+                <button
+                  type="button"
+                  onClick={() => setAuthModal('register')}
+                  className="font-semibold underline"
+                >
+                  会員登録
+                </button>{' '}
+                すると複数端末からデータにアクセスできます。
+              </div>
+            )}
             {panel === 'upload' && <UploadPanel onConvert={handleConvert} />}
             {panel === 'processing' && <ProcessingPanel />}
             {panel === 'completed' && currentJobId && (
@@ -92,8 +150,17 @@ export default function App() {
             <HistoryList jobs={history} />
           </div>
         </main>
+
         <PlayerBar />
       </div>
+
+      {authModal && (
+        <AuthModal
+          initialView={authModal}
+          onClose={() => setAuthModal(null)}
+          onSuccess={handleAuthSuccess}
+        />
+      )}
     </PlayerProvider>
   )
 }

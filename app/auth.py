@@ -6,7 +6,8 @@ from flask import current_app, jsonify, request
 from itsdangerous import BadSignature, URLSafeSerializer
 
 COOKIE_NAME = "user_id"
-COOKIE_MAX_AGE = 315360000  # 約10年
+COOKIE_MAX_AGE = 315360000  # 約10年（ゲスト）
+MEMBER_COOKIE_MAX_AGE = 30 * 24 * 60 * 60  # 30日（会員）
 
 
 def _serializer() -> URLSafeSerializer:
@@ -29,6 +30,18 @@ def set_user_cookie(response, user_id: str):
         COOKIE_NAME,
         token,
         max_age=COOKIE_MAX_AGE,
+        httponly=True,
+        samesite="Strict",
+    )
+    return response
+
+
+def set_member_cookie(response, user_id: str):
+    token = _serializer().dumps(user_id)
+    response.set_cookie(
+        COOKIE_NAME,
+        token,
+        max_age=MEMBER_COOKIE_MAX_AGE,
         httponly=True,
         samesite="Strict",
     )
