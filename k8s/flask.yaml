@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: flask
-          image: ghcr.io/YOUR_GITHUB_ORG/pdf-to-mp3:latest  # CI により自動更新
+          image: ghcr.io/kenty911/pdf_read:cc72b391  # CI により自動更新
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
