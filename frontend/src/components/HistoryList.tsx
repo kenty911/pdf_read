@@ -41,6 +41,25 @@ export default function HistoryList({ jobs }: Props) {
                   <p className="text-xs text-gray-400">
                     {job.created_at ? new Date(job.created_at).toLocaleString('ja-JP') : ''}
                   </p>
+                  {job.status === 'processing' &&
+                    job.total_lines != null &&
+                    job.total_lines > 0 && (
+                      <div className="mt-1">
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-0.5">
+                          <span>{job.current_line ?? 0}</span>
+                          <span>/</span>
+                          <span>{job.total_lines}行</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                          <div
+                            className="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(100, Math.round(((job.current_line ?? 0) / job.total_lines) * 100))}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
                 </div>
                 <div className="flex items-center shrink-0 gap-2">
                   <span

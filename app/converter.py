@@ -42,10 +42,9 @@ def _init_synthesizer():
     return synthesizer
 
 
-def _text_to_mp3(synthesizer, text: str, style_id: int = 0) -> bytes:
+def _text_to_mp3(synthesizer, lines: list[str], style_id: int = 0, on_progress=None) -> bytes:
     from pydub import AudioSegment
 
-    lines = [line.strip() for line in text.split("\n") if line.strip()]
     if not lines:
         return b""
 
@@ -53,8 +52,10 @@ def _text_to_mp3(synthesizer, text: str, style_id: int = 0) -> bytes:
     combined: AudioSegment | None = None
 
     for i, line in enumerate(lines):
-        if i % 50 == 0:
+        if i % 100 == 0:
             logger.info(f"  進捗: {i}/{len(lines)}")
+            if on_progress is not None:
+                on_progress(i)
 
         audio_query = synthesizer.create_audio_query(line, style_id)
         wav_data = synthesizer.synthesis(audio_query, style_id)
@@ -94,8 +95,17 @@ def _run_conversion(app, job_id: str) -> None:
             if not cleaned.strip():
                 raise ValueError("テキストが抽出できませんでした")
 
+            lines = [line.strip() for line in cleaned.split("\n") if line.strip()]
+            job.total_lines = len(lines)
+            job.current_line = 0
+            db.session.commit()
+
+            def on_progress(current: int) -> None:
+                job.current_line = current
+                db.session.commit()
+
             synthesizer = _get_synthesizer()
-            mp3_data = _text_to_mp3(synthesizer, cleaned)
+            mp3_data = _text_to_mp3(synthesizer, lines, on_progress=on_progress)
 
             if not mp3_data:
                 raise ValueError("音声データの生成に失敗しました")
