@@ -11,4 +11,6 @@ export interface Job {
   error: string | null
   original_filename: string | null
   created_at: string | null
+  total_lines: number | null
+  current_line: number | null
 }
