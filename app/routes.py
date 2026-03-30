@@ -283,10 +283,7 @@ def create_job():
     db.session.add(job)
     db.session.commit()
 
-    from flask import Flask
-
-    app: Flask = current_app  # type: ignore[assignment]
-    start_conversion(app, job_id)
+    start_conversion(current_app._get_current_object(), job_id)
 
     return jsonify({"job_id": job_id}), 202
 
