@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: flask
-          image: ghcr.io/kenty911/pdf_read:00bb5631  # CI により自動更新
+          image: ghcr.io/kenty911/pdf_read:493489c4  # CI により自動更新
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
