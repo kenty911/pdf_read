@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cleanup-stale-jobs
+  namespace: pdf-to-mp3
+spec:
+  schedule: "*/10 * * * *"  # 10分ごとに実行
+  concurrencyPolicy: Forbid   # 前回が終わっていなければスキップ
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: curl
+              image: curlimages/curl:8.7.1
+              command:
+                - curl
+                - --silent
+                - --show-error
+                - --fail
+                - -X
+                - POST
+                - -H
+                - "Authorization: Bearer $(INTERNAL_SECRET)"
+                - http://flask/api/internal/cleanup
+              env:
+                - name: INTERNAL_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: pdf-to-mp3-secret
+                      key: INTERNAL_SECRET

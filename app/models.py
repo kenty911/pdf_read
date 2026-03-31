@@ -71,6 +71,7 @@ class Job(db.Model):
             "error": self.error_message,
             "original_filename": self.original_filename,
             "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "total_lines": self.total_lines,
             "current_line": self.current_line,
         }
