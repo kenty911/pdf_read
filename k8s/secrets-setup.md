@@ -34,4 +34,3 @@ kubectl create secret generic pdf-to-mp3-secret \
 ```bash
 kubectl get secret pdf-to-mp3-secret -n pdf-to-mp3
 ```
-
