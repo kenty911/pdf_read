@@ -1,9 +1,10 @@
 interface Props {
   error: string
   onRetry: () => void
+  onResume?: () => void
 }
 
-export default function FailedPanel({ error, onRetry }: Props) {
+export default function FailedPanel({ error, onRetry, onResume }: Props) {
   return (
     <div className="text-center">
       <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
@@ -25,13 +26,24 @@ export default function FailedPanel({ error, onRetry }: Props) {
       </div>
       <h2 className="text-xl font-bold text-gray-900 mb-2">変換に失敗しました</h2>
       <p className="text-gray-500 mb-6">{error}</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="inline-block bg-gray-600 hover:bg-gray-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
-      >
-        やり直す
-      </button>
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        {onResume && (
+          <button
+            type="button"
+            onClick={onResume}
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+          >
+            途中から再開
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-block bg-gray-600 hover:bg-gray-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+        >
+          やり直す
+        </button>
+      </div>
     </div>
   )
 }

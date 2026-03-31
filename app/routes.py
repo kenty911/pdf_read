@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 import uuid
@@ -23,6 +24,7 @@ from .email import send_activation_email, send_password_reset_email
 from .models import Job, PasswordResetCode, PendingRegistration, User, new_uuid
 from .storage import get_upload_path
 
+logger = logging.getLogger(__name__)
 bp = Blueprint("main", __name__)
 
 
@@ -302,6 +304,47 @@ def job_status(job_id):
     user_id = get_user_id()
     job = Job.query.filter_by(id=job_id, user_id=user_id).first_or_404()
     return jsonify(job.to_dict())
+
+
+@bp.route("/api/internal/cleanup", methods=["POST"])
+def internal_cleanup():
+    """1時間以上進捗更新がない processing ジョブを failed に移行する。
+    K8s CronJob から Bearer トークンで呼び出す内部エンドポイント。
+    """
+    secret = os.environ.get("INTERNAL_SECRET", "")
+    auth = request.headers.get("Authorization", "")
+    if not secret or auth != f"Bearer {secret}":
+        return jsonify({"error": "unauthorized"}), 401
+
+    threshold = datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=1)
+    stale_jobs = Job.query.filter(
+        Job.status == "processing",
+        Job.updated_at < threshold,
+    ).all()
+
+    cancelled = []
+    for job in stale_jobs:
+        job.status = "failed"
+        job.error_message = "処理がタイムアウトにより中断されました（1時間以上更新なし）"
+        cancelled.append(job.id)
+        logger.info(f"タイムアウトキャンセル: job_id={job.id}")
+
+    db.session.commit()
+    return jsonify({"cancelled": cancelled})
+
+
+@bp.route("/api/jobs/<job_id>/retry", methods=["POST"])
+@require_auth
+def retry_job(job_id):
+    user_id = get_user_id()
+    job = Job.query.filter_by(id=job_id, user_id=user_id).first_or_404()
+    if job.status != "failed":
+        return jsonify({"error": "failed状態のジョブのみ再実行できます"}), 400
+    job.status = "processing"
+    job.error_message = None
+    db.session.commit()
+    start_conversion(current_app._get_current_object(), job_id)  # type: ignore
+    return jsonify({"job_id": job_id}), 202
 
 
 @bp.route("/api/jobs/<job_id>/download")

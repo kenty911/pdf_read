@@ -14,6 +14,7 @@ const POLL_INTERVAL_MS = 3000
 export default function App() {
   const [panel, setPanel] = useState<PanelState>('upload')
   const [currentJobId, setCurrentJobId] = useState<string | null>(null)
+  const [currentJob, setCurrentJob] = useState<Job | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
   const [history, setHistory] = useState<Job[]>([])
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
@@ -61,6 +62,7 @@ export default function App() {
       try {
         const resp = await fetch(`/api/jobs/${jobId}/status`)
         const data: Job = await resp.json()
+        setCurrentJob(data)
         if (data.status === 'completed') {
           setPanel('completed')
           loadHistory()
@@ -80,7 +82,23 @@ export default function App() {
 
   const resetToUpload = () => {
     setCurrentJobId(null)
+    setCurrentJob(null)
     setPanel('upload')
+  }
+
+  const handleJobRetry = async () => {
+    if (!currentJobId) return
+    try {
+      const resp = await fetch(`/api/jobs/${currentJobId}/retry`, { method: 'POST' })
+      if (!resp.ok) {
+        const data = await resp.json()
+        throw new Error(data.error || '再実行に失敗しました')
+      }
+      setPanel('processing')
+      pollStatus(currentJobId)
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : '再実行に失敗しました')
+    }
   }
 
   const handleAuthSuccess = () => {
@@ -142,11 +160,17 @@ export default function App() {
               </div>
             )}
             {panel === 'upload' && <UploadPanel onConvert={handleConvert} />}
-            {panel === 'processing' && <ProcessingPanel />}
+            {panel === 'processing' && <ProcessingPanel job={currentJob} />}
             {panel === 'completed' && currentJobId && (
               <CompletedPanel jobId={currentJobId} onReset={resetToUpload} />
             )}
-            {panel === 'failed' && <FailedPanel error={errorMsg} onRetry={resetToUpload} />}
+            {panel === 'failed' && (
+              <FailedPanel
+                error={errorMsg}
+                onRetry={resetToUpload}
+                onResume={currentJobId ? handleJobRetry : undefined}
+              />
+            )}
             <HistoryList jobs={history} />
           </div>
         </main>

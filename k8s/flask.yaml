@@ -51,6 +51,11 @@ spec:
                 secretKeyRef:
                   name: pdf-to-mp3-secret
                   key: SMTP_PASSWORD
+            - name: INTERNAL_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: pdf-to-mp3-secret
+                  key: INTERNAL_SECRET
           volumeMounts:
             - name: app-data
               mountPath: /data
