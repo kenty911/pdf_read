@@ -25,7 +25,7 @@ spec:
                 - POST
                 - -H
                 - "Authorization: Bearer $(INTERNAL_SECRET)"
-                - http://flask/api/internal/cleanup
+                - http://flask.pdf-to-mp3.svc.cluster.local/api/internal/cleanup
               env:
                 - name: INTERNAL_SECRET
                   valueFrom:
