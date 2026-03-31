@@ -39,7 +39,7 @@ export default function HistoryList({ jobs }: Props) {
                     {job.original_filename ?? '不明'}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {job.created_at ? new Date(job.created_at).toLocaleString('ja-JP') : ''}
+                    {job.created_at ? new Date(`${job.created_at}Z`).toLocaleString('ja-JP') : ''}
                   </p>
                   {job.status === 'processing' &&
                     job.total_lines != null &&
