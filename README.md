@@ -4,19 +4,32 @@ PDFをアップロードするとVoiceVox（日本語TTS）でMP3に変換する
 
 ## 技術スタック
 
-- **バックエンド**: Flask + SQLAlchemy + MySQL（バックグラウンドスレッドで変換処理）
-- **フロントエンド**: React + Vite + Tailwind CSS（静的ファイルとしてFlaskから配信）
-- **TTS**: VoiceVox 0.16.2（ONNX Runtime CPU、Dockerイメージに同梱）
-- **認証**: Google reCAPTCHA v3 + UUID v4 Cookie
-
-## デプロイ
-
-GitHub Actionsでイメージをビルド・GHCRにpush → `k8s/flask.yaml` のタグを自動更新 → ArgoCDが自動デプロイ。
+- **フロントエンド/バックエンド**: Next.js 15 (App Router, SSR, Server Actions) + Drizzle ORM + MySQL
+- **ワーカー**: Python 3.12 + VoiceVox 0.16.2（K8s Job として都度起動）
+- **インフラ**: Kubernetes シングルノード / ArgoCD / GHCR
 
 ## ローカル開発セットアップ
 
 ```bash
+# Service
+cd service
+npm install
+npm run db:generate
+npm run dev
+
+# Worker
+cd worker
 uv sync
-uv run lefthook install   # pre-commitフック有効化
-cd frontend && npm install
+uv run lefthook install
 ```
+
+## デプロイ
+
+`main` へ push → GitHub Actions が変更パスを検知してビルド：
+
+| 変更パス | ビルド対象 | 更新ファイル |
+|---|---|---|
+| `service/**` | `_web` イメージ | `k8s/web.yaml` |
+| `worker/**` | `_worker` イメージ | `k8s/config.yaml` |
+
+ArgoCD がマニフェスト変更を検知して自動デプロイ（`kubectl apply` 不要）。

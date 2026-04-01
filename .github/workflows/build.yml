@@ -7,11 +7,34 @@ on:
       - "k8s/**"   # マニフェスト更新コミットで再トリガーしない
 
 permissions:
-  contents: write  # k8s/flask.yaml のコミット push に必要
+  contents: write  # k8s manifest へのコミット push に必要
   packages: write  # GHCR への push に必要
 
 jobs:
-  lint-python:
+  lint-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: service/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: service
+
+      - name: biome check
+        run: npx biome ci app/ server/ actions/
+        working-directory: service
+
+      - name: tsc type check
+        run: npx tsc --noEmit
+        working-directory: service
+
+  lint-worker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,46 +43,26 @@ jobs:
 
       - name: Install dev dependencies
         run: uv sync --frozen --group dev
+        working-directory: worker
 
       - name: ruff lint
-        run: uv run ruff check app/
+        run: uv run ruff check .
+        working-directory: worker
 
       - name: ruff format check
-        run: uv run ruff format --check app/
+        run: uv run ruff format --check .
+        working-directory: worker
 
-      - name: ty type check
-        run: uv run ty check app/
-
-  lint-frontend:
+  build-web:
+    needs: [lint-service]
     runs-on: ubuntu-latest
+    # service/ 配下の変更があるとき、または worker 以外の変更のときにビルド
+    if: |
+      contains(github.event.head_commit.modified, 'service/') ||
+      !contains(github.event.head_commit.modified, 'worker/')
+
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-        working-directory: frontend
-
-      - name: biome check
-        run: npx biome ci src/
-        working-directory: frontend
-
-      - name: tsc type check
-        run: npx tsc --noEmit
-        working-directory: frontend
-
-  build-and-push:
-    needs: [lint-python, lint-frontend]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
 
       - name: Set short SHA
         run: echo "SHORT_SHA=${GITHUB_SHA::8}" >> $GITHUB_ENV
@@ -71,34 +74,72 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Build and push
+      - name: Build and push web image
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: service/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ env.SHORT_SHA }}
-            ghcr.io/${{ github.repository }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: BUILDKIT_INLINE_CACHE=1
-        env:
-          BUILDKIT_PROGRESS: plain
+            ghcr.io/${{ github.repository }}_web:${{ env.SHORT_SHA }}
+            ghcr.io/${{ github.repository }}_web:latest
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
 
-      - name: Update image tag in k8s manifest
+      - name: Update web image tag in k8s manifest
         run: |
-          IMAGE="ghcr.io/${{ github.repository }}:${{ env.SHORT_SHA }}"
-          sed -i "s|image: ghcr.io/.*|image: ${IMAGE}  # CI により自動更新|" k8s/flask.yaml
+          IMAGE="ghcr.io/${{ github.repository }}_web:${{ env.SHORT_SHA }}"
+          sed -i "s|image: ghcr.io/.*_web:.*|image: ${IMAGE}  # CI により自動更新|" k8s/web.yaml
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add k8s/flask.yaml
-
-          # 変更がある場合のみコミット
+          git add k8s/web.yaml
           git diff --staged --quiet || \
-            git commit -m "ci: update flask image to ${SHORT_SHA} [skip ci]"
+            git commit -m "ci: update web image to ${SHORT_SHA} [skip ci]"
+          git push
 
+  build-worker:
+    needs: [lint-worker]
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'worker/')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::8}" >> $GITHUB_ENV
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and push worker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: worker/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}_worker:${{ env.SHORT_SHA }}
+            ghcr.io/${{ github.repository }}_worker:latest
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,mode=max,scope=worker
+
+      - name: Update worker image tag in k8s config
+        run: |
+          IMAGE="ghcr.io/${{ github.repository }}_worker:${{ env.SHORT_SHA }}"
+          sed -i "s|WORKER_IMAGE:.*|WORKER_IMAGE: \"${IMAGE}\"  # CI により自動更新|" k8s/config.yaml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add k8s/config.yaml
+          git diff --staged --quiet || \
+            git commit -m "ci: update worker image to ${SHORT_SHA} [skip ci]"
           git push

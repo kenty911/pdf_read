@@ -1,5 +1,12 @@
-static/dist/
-frontend/node_modules/
-__pycache__/
-*.pyc
+# Node
+service/node_modules/
+service/.next/
+service/.turbo/
+
+# Python
+worker/__pycache__/
+worker/.venv/
+**/*.pyc
+
+# 環境変数
 .env

@@ -23,6 +23,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: flask
+                name: web
                 port:
                   number: 80
