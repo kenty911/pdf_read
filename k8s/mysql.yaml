@@ -35,7 +35,7 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: pdf-to-mp3-secret
+                  name: app-secret
                   key: MYSQL_ROOT_PASSWORD
             - name: MYSQL_DATABASE
               value: pdftomp3
@@ -44,7 +44,7 @@ spec:
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: pdf-to-mp3-secret
+                  name: app-secret
                   key: MYSQL_PASSWORD
           volumeMounts:
             - name: mysql-data

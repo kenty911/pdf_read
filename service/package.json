@@ -1,0 +1,35 @@
+{
+  "name": "pdf-to-mp3-service",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check app/ server/ actions/",
+    "format": "biome format --write app/ server/ actions/",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "next": "16.2.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "drizzle-orm": "^0.43.0",
+    "mysql2": "^3.14.0",
+    "@kubernetes/client-node": "^1.1.2",
+    "nodemailer": "^6.10.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/nodemailer": "^6.4.17",
+    "drizzle-kit": "^0.31.0",
+    "typescript": "^5.8.0",
+    "tailwindcss": "^4.1.0",
+    "@tailwindcss/postcss": "^4.1.0",
+    "postcss": "^8.5.0"
+  }
+}

@@ -1,23 +1,22 @@
 pre-commit:
   parallel: true
   commands:
-    ruff-format:
-      glob: "app/**/*.py"
-      run: uv run ruff format app/
-      stage_fixed: true
-    ruff-lint:
-      glob: "app/**/*.py"
-      run: uv run ruff check --fix app/
-      stage_fixed: true
-    ty:
-      glob: "app/**/*.py"
-      run: uv run ty check app/
     biome:
-      glob: "frontend/src/**/*.{ts,tsx}"
-      root: frontend
-      run: npx biome check --write src/
+      glob: "service/{app,server,actions}/**/*.{ts,tsx}"
+      root: service
+      run: npx biome check --write app/ server/ actions/
       stage_fixed: true
     tsc:
-      glob: "frontend/**/*.{ts,tsx}"
-      root: frontend
+      glob: "service/**/*.{ts,tsx}"
+      root: service
       run: npx tsc --noEmit
+    ruff-format:
+      glob: "worker/**/*.py"
+      root: worker
+      run: uv run ruff format .
+      stage_fixed: true
+    ruff-lint:
+      glob: "worker/**/*.py"
+      root: worker
+      run: uv run ruff check --fix .
+      stage_fixed: true
