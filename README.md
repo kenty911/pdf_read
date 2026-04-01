@@ -11,16 +11,16 @@ PDFをアップロードするとVoiceVox（日本語TTS）でMP3に変換する
 ## ローカル開発セットアップ
 
 ```bash
-# Next.js サービス（service/ 内で実行）
+# Service
 cd service
 npm install
-npm run db:generate   # Drizzle マイグレーション SQL 生成
-npm run dev           # 開発サーバー起動
+npm run db:generate
+npm run dev
 
-# Worker（worker/ 内で実行）
+# Worker
 cd worker
-uv sync               # 依存インストール（dev 含む）
-uv run lefthook install  # pre-commit フック有効化（初回のみ）
+uv sync
+uv run lefthook install
 ```
 
 ## デプロイ
