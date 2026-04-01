@@ -1,7 +1,7 @@
 import { pbkdf2, randomBytes, timingSafeEqual } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import { promisify } from 'node:util'
 import { eq } from 'drizzle-orm'
-import { randomUUID } from 'node:crypto'
 import { db } from '../db/client'
 import { users } from '../db/schema'
 
@@ -17,7 +17,10 @@ async function hashPassword(password: string): Promise<string> {
   return `${salt}:${key.toString('hex')}`
 }
 
-async function verifyPassword(password: string, stored: string): Promise<boolean> {
+async function verifyPassword(
+  password: string,
+  stored: string,
+): Promise<boolean> {
   const [salt, storedKey] = stored.split(':')
   if (!salt || !storedKey) return false
   const key = await pbkdf2Async(password, salt, ITERATIONS, KEY_LEN, DIGEST)
@@ -56,7 +59,11 @@ export class User {
     const id = randomUUID()
     const now = new Date()
     await db.insert(users).values({ id, email, passwordHash, createdAt: now })
-    return (await User.findById(id))!
+    const user = await User.findById(id)
+    if (!user) {
+      throw new Error(`User not found after insert: ${id}`)
+    }
+    return user
   }
 
   static async hashPassword(password: string): Promise<string> {
@@ -64,13 +71,19 @@ export class User {
   }
 
   async verify(): Promise<void> {
-    await db.update(users).set({ isVerified: true }).where(eq(users.id, this.id))
+    await db
+      .update(users)
+      .set({ isVerified: true })
+      .where(eq(users.id, this.id))
     this.isVerified = true
   }
 
   async setPassword(password: string): Promise<void> {
     this.passwordHash = await hashPassword(password)
-    await db.update(users).set({ passwordHash: this.passwordHash }).where(eq(users.id, this.id))
+    await db
+      .update(users)
+      .set({ passwordHash: this.passwordHash })
+      .where(eq(users.id, this.id))
   }
 
   checkPassword(password: string): Promise<boolean> {

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import { logout } from '@/actions/auth'
+import { useState } from 'react'
 import AuthModal from './components/AuthModal'
 import PlayerBar from './components/PlayerBar'
 import { PlayerProvider } from './context/PlayerContext'
@@ -22,21 +22,32 @@ export default function AppShell({ userInfo, children }: Props) {
           <div className="flex items-center gap-3">
             {userInfo.type === 'member' ? (
               <>
-                <span className="text-sm text-gray-500 hidden sm:block">{userInfo.email}</span>
+                <span className="text-sm text-gray-500 hidden sm:block">
+                  {userInfo.email}
+                </span>
                 <form action={logout}>
-                  <button type="submit" className="text-sm text-gray-500 hover:text-gray-700 underline">
+                  <button
+                    type="submit"
+                    className="text-sm text-gray-500 hover:text-gray-700 underline"
+                  >
                     ログアウト
                   </button>
                 </form>
               </>
             ) : (
               <>
-                <button type="button" onClick={() => setAuthModal('login')}
-                  className="text-sm text-gray-600 hover:text-gray-900 font-medium">
+                <button
+                  type="button"
+                  onClick={() => setAuthModal('login')}
+                  className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+                >
                   ログイン
                 </button>
-                <button type="button" onClick={() => setAuthModal('register')}
-                  className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-1.5 rounded-lg transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setAuthModal('register')}
+                  className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-1.5 rounded-lg transition-colors"
+                >
                   会員登録
                 </button>
               </>
@@ -49,7 +60,11 @@ export default function AppShell({ userInfo, children }: Props) {
             {userInfo.type === 'guest' && (
               <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-700">
                 現在ゲストとして利用中です。{' '}
-                <button type="button" onClick={() => setAuthModal('register')} className="font-semibold underline">
+                <button
+                  type="button"
+                  onClick={() => setAuthModal('register')}
+                  className="font-semibold underline"
+                >
                   会員登録
                 </button>{' '}
                 すると複数端末からデータにアクセスできます。

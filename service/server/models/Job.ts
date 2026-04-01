@@ -46,30 +46,54 @@ export class Job {
     return rows.map((r) => new Job(r))
   }
 
-  static async create(userId: string, originalFilename: string, pdfPath: string): Promise<Job> {
+  static async create(
+    userId: string,
+    originalFilename: string,
+    pdfPath: string,
+  ): Promise<Job> {
     const id = randomUUID()
     const now = new Date()
-    await db.insert(jobs).values({ id, userId, originalFilename, pdfPath, createdAt: now, updatedAt: now })
-    return (await Job.findById(id))!
+    await db.insert(jobs).values({
+      id,
+      userId,
+      originalFilename,
+      pdfPath,
+      createdAt: now,
+      updatedAt: now,
+    })
+    const job = await Job.findById(id)
+    if (!job) {
+      throw new Error(`Job not found after insert: ${id}`)
+    }
+    return job
   }
 
   async setPdfPath(pdfPath: string): Promise<void> {
     const now = new Date()
-    await db.update(jobs).set({ pdfPath, updatedAt: now }).where(eq(jobs.id, this.id))
+    await db
+      .update(jobs)
+      .set({ pdfPath, updatedAt: now })
+      .where(eq(jobs.id, this.id))
     this.pdfPath = pdfPath
     this.updatedAt = now
   }
 
   async markProcessing(): Promise<void> {
     const now = new Date()
-    await db.update(jobs).set({ status: 'processing', updatedAt: now }).where(eq(jobs.id, this.id))
+    await db
+      .update(jobs)
+      .set({ status: 'processing', updatedAt: now })
+      .where(eq(jobs.id, this.id))
     this.status = 'processing'
     this.updatedAt = now
   }
 
   async markCompleted(mp3Path: string): Promise<void> {
     const now = new Date()
-    await db.update(jobs).set({ status: 'completed', mp3Path, updatedAt: now }).where(eq(jobs.id, this.id))
+    await db
+      .update(jobs)
+      .set({ status: 'completed', mp3Path, updatedAt: now })
+      .where(eq(jobs.id, this.id))
     this.status = 'completed'
     this.mp3Path = mp3Path
     this.updatedAt = now
@@ -77,19 +101,28 @@ export class Job {
 
   async markFailed(error: string): Promise<void> {
     const now = new Date()
-    await db.update(jobs).set({ status: 'failed', errorMessage: error, updatedAt: now }).where(eq(jobs.id, this.id))
+    await db
+      .update(jobs)
+      .set({ status: 'failed', errorMessage: error, updatedAt: now })
+      .where(eq(jobs.id, this.id))
     this.status = 'failed'
     this.errorMessage = error
     this.updatedAt = now
   }
 
-  async updateProgress(currentLine: number, totalLines?: number): Promise<void> {
+  async updateProgress(
+    currentLine: number,
+    totalLines?: number,
+  ): Promise<void> {
     const now = new Date()
-    await db.update(jobs).set({
-      currentLine,
-      updatedAt: now,
-      ...(totalLines !== undefined ? { totalLines } : {}),
-    }).where(eq(jobs.id, this.id))
+    await db
+      .update(jobs)
+      .set({
+        currentLine,
+        updatedAt: now,
+        ...(totalLines !== undefined ? { totalLines } : {}),
+      })
+      .where(eq(jobs.id, this.id))
     this.currentLine = currentLine
     if (totalLines !== undefined) this.totalLines = totalLines
     this.updatedAt = now

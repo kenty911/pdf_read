@@ -30,18 +30,24 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const audio = new Audio()
     audioRef.current = audio
 
-    audio.addEventListener('timeupdate', () => setCurrentTime(audio.currentTime))
+    audio.addEventListener('timeupdate', () =>
+      setCurrentTime(audio.currentTime),
+    )
     audio.addEventListener('durationchange', () => setDuration(audio.duration))
     audio.addEventListener('play', () => setIsPlaying(true))
     audio.addEventListener('pause', () => setIsPlaying(false))
     audio.addEventListener('ended', () => {
       setIsPlaying(false)
-      if (currentTrack) localStorage.removeItem(`audio-pos-${currentTrack.jobId}`)
+      if (currentTrack)
+        localStorage.removeItem(`audio-pos-${currentTrack.jobId}`)
     })
 
     const saveInterval = setInterval(() => {
       if (currentTrack && !audio.paused) {
-        localStorage.setItem(`audio-pos-${currentTrack.jobId}`, String(audio.currentTime))
+        localStorage.setItem(
+          `audio-pos-${currentTrack.jobId}`,
+          String(audio.currentTime),
+        )
       }
     }, 5000)
 
@@ -73,11 +79,21 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const audio = audioRef.current
     if (!audio) return
     audio.currentTime = time
-    if (currentTrack) localStorage.setItem(`audio-pos-${currentTrack.jobId}`, String(time))
+    if (currentTrack)
+      localStorage.setItem(`audio-pos-${currentTrack.jobId}`, String(time))
   }
 
   return (
-    <PlayerContext.Provider value={{ currentTrack, isPlaying, currentTime, duration, togglePlay, seek }}>
+    <PlayerContext.Provider
+      value={{
+        currentTrack,
+        isPlaying,
+        currentTime,
+        duration,
+        togglePlay,
+        seek,
+      }}
+    >
       {children}
     </PlayerContext.Provider>
   )

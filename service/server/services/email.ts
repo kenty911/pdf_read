@@ -1,20 +1,31 @@
 import nodemailer from 'nodemailer'
 
+function requireEnv(name: string): string {
+  const v = process.env[name]
+  if (!v) {
+    throw new Error(`Missing required environment variable: ${name}`)
+  }
+  return v
+}
+
 function createTransport() {
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST!,
+    host: requireEnv('SMTP_HOST'),
     port: Number(process.env.SMTP_PORT ?? 587),
     secure: false,
     auth: {
-      user: process.env.SMTP_USER!,
-      pass: process.env.SMTP_PASSWORD!,
+      user: requireEnv('SMTP_USER'),
+      pass: requireEnv('SMTP_PASSWORD'),
     },
   })
 }
 
 const FROM = process.env.SMTP_FROM ?? 'info@pdf-to-mp3.ken-ty.com'
 
-export async function sendActivationEmail(toEmail: string, code: string): Promise<void> {
+export async function sendActivationEmail(
+  toEmail: string,
+  code: string,
+): Promise<void> {
   await createTransport().sendMail({
     from: FROM,
     to: toEmail,
@@ -32,7 +43,10 @@ export async function sendActivationEmail(toEmail: string, code: string): Promis
   })
 }
 
-export async function sendPasswordResetEmail(toEmail: string, code: string): Promise<void> {
+export async function sendPasswordResetEmail(
+  toEmail: string,
+  code: string,
+): Promise<void> {
   await createTransport().sendMail({
     from: FROM,
     to: toEmail,

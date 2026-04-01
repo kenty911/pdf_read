@@ -42,27 +42,54 @@ export default function UploadPanel({ onConvert }: Props) {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">PDFをアップロード</h2>
-      <p className="text-gray-500 mb-6">PDFファイルを選択してMP3に変換します。</p>
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        PDFをアップロード
+      </h2>
+      <p className="text-gray-500 mb-6">
+        PDFファイルを選択してMP3に変換します。
+      </p>
 
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+        onDragOver={(e) => {
+          e.preventDefault()
+          setDragging(true)
+        }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         className={`w-full border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors
           ${dragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'}`}
       >
-        <svg className="mx-auto mb-3 w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-label="アップロード">
+        <svg
+          className="mx-auto mb-3 w-10 h-10 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-label="アップロード"
+        >
           <title>アップロード</title>
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+          />
         </svg>
         <p className="text-gray-600 font-medium">ここにドロップ、または</p>
-        <span className="mt-2 inline-block text-blue-600 hover:underline font-semibold">ファイルを選択</span>
-        <input ref={inputRef} type="file" accept=".pdf" className="hidden"
-          onChange={(e) => e.target.files?.[0] && setFile(e.target.files[0])} />
-        {selectedFile && <p className="mt-2 text-sm text-gray-500">{selectedFile.name}</p>}
+        <span className="mt-2 inline-block text-blue-600 hover:underline font-semibold">
+          ファイルを選択
+        </span>
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".pdf"
+          className="hidden"
+          onChange={(e) => e.target.files?.[0] && setFile(e.target.files[0])}
+        />
+        {selectedFile && (
+          <p className="mt-2 text-sm text-gray-500">{selectedFile.name}</p>
+        )}
       </button>
 
       {error && (

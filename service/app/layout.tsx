@@ -6,7 +6,9 @@ export const metadata: Metadata = {
   description: 'PDFをMP3に変換するWebアプリ',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: { children: React.ReactNode }) {
   return (
     <html lang="ja">
       <body className="bg-gray-50 min-h-screen">{children}</body>

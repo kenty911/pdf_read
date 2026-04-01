@@ -1,8 +1,9 @@
 import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
-import { type NextRequest, NextResponse } from 'next/server'
+import { Readable } from 'node:stream'
 import { getUserId } from '@/actions/auth'
 import { Job } from '@/server/models/Job'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   _req: NextRequest,
@@ -10,10 +11,16 @@ export async function GET(
 ) {
   const { id } = await params
   const userId = await getUserId()
-  if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  if (!userId)
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   const job = await Job.findById(id)
-  if (!job || job.userId !== userId || job.status !== 'completed' || !job.mp3Path) {
+  if (
+    !job ||
+    job.userId !== userId ||
+    job.status !== 'completed' ||
+    !job.mp3Path
+  ) {
     return NextResponse.json({ error: 'not found' }, { status: 404 })
   }
 
@@ -26,9 +33,9 @@ export async function GET(
   const basename = (job.originalFilename ?? 'output').replace(/\.pdf$/i, '')
   const filename = encodeURIComponent(`${basename}.mp3`)
   const stream = createReadStream(job.mp3Path)
-  const webStream = ReadableStream.from(stream as unknown as AsyncIterable<Uint8Array>)
+  const webStream = Readable.toWeb(stream)
 
-  return new NextResponse(webStream, {
+  return new NextResponse(webStream as unknown as BodyInit, {
     headers: {
       'Content-Type': 'audio/mpeg',
       'Content-Disposition': `attachment; filename*=UTF-8''${filename}`,

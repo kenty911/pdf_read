@@ -10,15 +10,30 @@ export default function FailedPanel({ error, onRetry, onResume }: Props) {
   return (
     <div className="text-center">
       <div className="mx-auto mb-6 w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
-        <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-label="失敗">
+        <svg
+          className="w-8 h-8 text-red-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-label="失敗"
+        >
           <title>失敗</title>
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">変換に失敗しました</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        変換に失敗しました
+      </h2>
       {error && (
-        <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">{error}</p>
+        <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
+          {error}
+        </p>
       )}
 
       <div className="space-y-3">

@@ -24,14 +24,22 @@ export class PendingRegistration {
     return String(randomInt(100000, 999999))
   }
 
-  static async upsert(email: string, passwordHash: string, code: string): Promise<PendingRegistration> {
+  static async upsert(
+    email: string,
+    passwordHash: string,
+    code: string,
+  ): Promise<PendingRegistration> {
     const now = new Date()
     const expiresAt = new Date(now.getTime() + 30 * 60 * 1000)
     await db
       .insert(pendingRegistrations)
       .values({ email, passwordHash, code, expiresAt, createdAt: now })
       .onDuplicateKeyUpdate({ set: { passwordHash, code, expiresAt } })
-    return (await PendingRegistration.findByEmail(email))!
+    const row = await PendingRegistration.findByEmail(email)
+    if (!row) {
+      throw new Error(`PendingRegistration not found after upsert: ${email}`)
+    }
+    return row
   }
 
   static async findByEmail(email: string): Promise<PendingRegistration | null> {
@@ -43,7 +51,9 @@ export class PendingRegistration {
   }
 
   async delete(): Promise<void> {
-    await db.delete(pendingRegistrations).where(eq(pendingRegistrations.email, this.email))
+    await db
+      .delete(pendingRegistrations)
+      .where(eq(pendingRegistrations.email, this.email))
   }
 
   isExpired(): boolean {

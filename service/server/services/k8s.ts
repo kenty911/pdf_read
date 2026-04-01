@@ -36,7 +36,10 @@ export async function createConversionJob(jobId: string): Promise<void> {
                   {
                     name: 'DATABASE_URL',
                     valueFrom: {
-                      secretKeyRef: { name: 'app-secret', key: 'DATABASE_URL' },
+                      secretKeyRef: {
+                        name: 'pdf-to-mp3-secret',
+                        key: 'DATABASE_URL',
+                      },
                     },
                   },
                   { name: 'DATA_DIR', value: '/data' },

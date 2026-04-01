@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
 import { getUserId } from '@/actions/auth'
+import { redirect } from 'next/navigation'
 
 export default async function LandingPage() {
   const userId = await getUserId()

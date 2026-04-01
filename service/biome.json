@@ -11,6 +11,6 @@
     "indentWidth": 2
   },
   "javascript": {
-    "formatter": { "quoteStyle": "single", "semicolons": "never" }
+    "formatter": { "quoteStyle": "single", "semicolons": "asNeeded" }
   }
 }

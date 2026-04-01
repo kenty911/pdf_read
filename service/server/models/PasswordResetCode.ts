@@ -29,7 +29,11 @@ export class PasswordResetCode {
       .insert(passwordResetCodes)
       .values({ email, code, expiresAt, createdAt: now })
       .onDuplicateKeyUpdate({ set: { code, expiresAt } })
-    return (await PasswordResetCode.findByEmail(email))!
+    const row = await PasswordResetCode.findByEmail(email)
+    if (!row) {
+      throw new Error(`PasswordResetCode not found after upsert: ${email}`)
+    }
+    return row
   }
 
   static async findByEmail(email: string): Promise<PasswordResetCode | null> {
@@ -41,7 +45,9 @@ export class PasswordResetCode {
   }
 
   async delete(): Promise<void> {
-    await db.delete(passwordResetCodes).where(eq(passwordResetCodes.email, this.email))
+    await db
+      .delete(passwordResetCodes)
+      .where(eq(passwordResetCodes.email, this.email))
   }
 
   isExpired(): boolean {

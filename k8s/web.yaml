@@ -27,22 +27,22 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: app-secret
+                  name: pdf-to-mp3-secret
                   key: DATABASE_URL
             - name: COOKIE_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: app-secret
+                  name: pdf-to-mp3-secret
                   key: COOKIE_SECRET
             - name: RECAPTCHA_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: app-secret
+                  name: pdf-to-mp3-secret
                   key: RECAPTCHA_SECRET_KEY
             - name: SMTP_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: app-secret
+                  name: pdf-to-mp3-secret
                   key: SMTP_PASSWORD
             - name: WORKER_IMAGE
               valueFrom:

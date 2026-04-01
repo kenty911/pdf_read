@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useState } from 'react'
 import { getJobStatus, getJobs, retryJob, uploadPDF } from '@/actions/jobs'
+import { useCallback, useState } from 'react'
 import CompletedPanel from './components/CompletedPanel'
 import FailedPanel from './components/FailedPanel'
 import HistoryList from './components/HistoryList'
@@ -27,32 +27,43 @@ export default function AppClient({ initialJobs }: Props) {
     setHistory(jobs)
   }, [])
 
-  const pollStatus = useCallback(async (jobId: string) => {
-    while (true) {
-      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS))
-      try {
-        const data = await getJobStatus(jobId)
-        if (!data) return
-        setCurrentJob(data)
-        if (data.status === 'completed') { setPanel('completed'); loadHistory(); return }
-        if (data.status === 'failed') {
-          setErrorMsg(data.error ?? '不明なエラーが発生しました')
-          setPanel('failed')
-          loadHistory()
-          return
+  const pollStatus = useCallback(
+    async (jobId: string) => {
+      while (true) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS))
+        try {
+          const data = await getJobStatus(jobId)
+          if (!data) return
+          setCurrentJob(data)
+          if (data.status === 'completed') {
+            setPanel('completed')
+            loadHistory()
+            return
+          }
+          if (data.status === 'failed') {
+            setErrorMsg(data.error ?? '不明なエラーが発生しました')
+            setPanel('failed')
+            loadHistory()
+            return
+          }
+        } catch {
+          /* continue */
         }
-      } catch { /* continue */ }
-    }
-  }, [loadHistory])
+      }
+    },
+    [loadHistory],
+  )
 
   const handleConvert = async (file: File) => {
     const formData = new FormData()
     formData.append('file', file)
     const result = await uploadPDF(formData)
-    if (!result.ok) throw new Error(result.error ?? 'アップロードに失敗しました')
-    setCurrentJobId(result.jobId!)
+    if (!result.ok)
+      throw new Error(result.error ?? 'アップロードに失敗しました')
+    if (!result.jobId) throw new Error('アップロード結果にjobIdがありません')
+    setCurrentJobId(result.jobId)
     setPanel('processing')
-    pollStatus(result.jobId!)
+    pollStatus(result.jobId)
   }
 
   const handleJobRetry = async () => {
@@ -67,15 +78,25 @@ export default function AppClient({ initialJobs }: Props) {
     }
   }
 
-  const resetToUpload = () => { setCurrentJobId(null); setCurrentJob(null); setPanel('upload') }
+  const resetToUpload = () => {
+    setCurrentJobId(null)
+    setCurrentJob(null)
+    setPanel('upload')
+  }
 
   return (
     <>
       {panel === 'upload' && <UploadPanel onConvert={handleConvert} />}
       {panel === 'processing' && <ProcessingPanel job={currentJob} />}
-      {panel === 'completed' && currentJobId && <CompletedPanel jobId={currentJobId} onReset={resetToUpload} />}
+      {panel === 'completed' && currentJobId && (
+        <CompletedPanel jobId={currentJobId} onReset={resetToUpload} />
+      )}
       {panel === 'failed' && (
-        <FailedPanel error={errorMsg} onRetry={resetToUpload} onResume={currentJobId ? handleJobRetry : undefined} />
+        <FailedPanel
+          error={errorMsg}
+          onRetry={resetToUpload}
+          onResume={currentJobId ? handleJobRetry : undefined}
+        />
       )}
       <HistoryList jobs={history} />
     </>

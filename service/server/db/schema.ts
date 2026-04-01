@@ -9,7 +9,12 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core'
 
-export const jobStatusValues = ['pending', 'processing', 'completed', 'failed'] as const
+export const jobStatusValues = [
+  'pending',
+  'processing',
+  'completed',
+  'failed',
+] as const
 export type JobStatus = (typeof jobStatusValues)[number]
 
 export const users = mysqlTable('users', {

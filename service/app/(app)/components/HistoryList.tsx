@@ -37,12 +37,17 @@ export default function HistoryList({ jobs }: Props) {
           const isCurrentTrack = currentTrack?.jobId === job.id
 
           return (
-            <li key={job.id} className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+            <li
+              key={job.id}
+              className="bg-white rounded-lg border border-gray-200 px-4 py-3"
+            >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm text-gray-700 truncate flex-1">
                   {job.original_filename ?? '(不明)'}
                 </span>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLOR[job.status]}`}>
+                <span
+                  className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLOR[job.status]}`}
+                >
                   {STATUS_LABEL[job.status]}
                 </span>
               </div>
@@ -56,11 +61,16 @@ export default function HistoryList({ jobs }: Props) {
               {job.status === 'processing' && total > 0 && (
                 <div className="mt-2">
                   <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>{current} / {total} 行</span>
+                    <span>
+                      {current} / {total} 行
+                    </span>
                     <span>{pct}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
+                    <div
+                      className="bg-blue-600 h-1.5 rounded-full"
+                      style={{ width: `${pct}%` }}
+                    />
                   </div>
                 </div>
               )}
@@ -80,7 +90,10 @@ export default function HistoryList({ jobs }: Props) {
                   >
                     {isCurrentTrack && isPlaying ? '⏸ 停止' : '▶ 再生'}
                   </button>
-                  <a href={`/app/jobs/${job.id}/download`} className="text-xs text-blue-600 hover:underline">
+                  <a
+                    href={`/app/jobs/${job.id}/download`}
+                    className="text-xs text-blue-600 hover:underline"
+                  >
                     DL
                   </a>
                 </div>

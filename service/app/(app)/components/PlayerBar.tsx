@@ -3,14 +3,15 @@
 import { usePlayer } from '../context/PlayerContext'
 
 function formatTime(seconds: number): string {
-  if (!isFinite(seconds)) return '0:00'
+  if (!Number.isFinite(seconds)) return '0:00'
   const m = Math.floor(seconds / 60)
   const s = Math.floor(seconds % 60)
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
 export default function PlayerBar() {
-  const { currentTrack, isPlaying, currentTime, duration, togglePlay, seek } = usePlayer()
+  const { currentTrack, isPlaying, currentTime, duration, togglePlay, seek } =
+    usePlayer()
   if (!currentTrack) return null
 
   return (
@@ -22,19 +23,33 @@ export default function PlayerBar() {
         aria-label={isPlaying ? '一時停止' : '再生'}
       >
         {isPlaying ? (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            className="w-4 h-4"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <rect x="6" y="4" width="4" height="16" />
             <rect x="14" y="4" width="4" height="16" />
           </svg>
         ) : (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            className="w-4 h-4"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path d="M8 5v14l11-7z" />
           </svg>
         )}
       </button>
 
-      <span className="text-sm text-gray-700 truncate max-w-[200px]">{currentTrack.filename}</span>
-      <span className="text-sm text-gray-500 shrink-0">{formatTime(currentTime)}</span>
+      <span className="text-sm text-gray-700 truncate max-w-[200px]">
+        {currentTrack.filename}
+      </span>
+      <span className="text-sm text-gray-500 shrink-0">
+        {formatTime(currentTime)}
+      </span>
 
       <input
         type="range"
@@ -46,7 +61,9 @@ export default function PlayerBar() {
         onChange={(e) => seek(Number(e.target.value))}
       />
 
-      <span className="text-sm text-gray-500 shrink-0">{formatTime(duration)}</span>
+      <span className="text-sm text-gray-500 shrink-0">
+        {formatTime(duration)}
+      </span>
     </div>
   )
 }

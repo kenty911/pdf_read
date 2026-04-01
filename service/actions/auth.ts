@@ -1,14 +1,23 @@
 'use server'
 
 import { randomUUID } from 'node:crypto'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { PasswordResetCode } from '@/server/models/PasswordResetCode'
 import { PendingRegistration } from '@/server/models/PendingRegistration'
 import { User } from '@/server/models/User'
-import { COOKIE_NAME, GUEST_MAX_AGE, MEMBER_MAX_AGE, sign, verify } from '@/server/services/auth'
-import { sendActivationEmail, sendPasswordResetEmail } from '@/server/services/email'
+import {
+  COOKIE_NAME,
+  GUEST_MAX_AGE,
+  MEMBER_MAX_AGE,
+  sign,
+  verify,
+} from '@/server/services/auth'
+import {
+  sendActivationEmail,
+  sendPasswordResetEmail,
+} from '@/server/services/email'
 import { verifyRecaptcha } from '@/server/services/recaptcha'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
 // ── Cookie ヘルパー ──────────────────────────────────────────
 async function setGuestCookie(userId: string) {
@@ -46,7 +55,10 @@ export async function requireUserId(): Promise<string> {
 }
 
 // ── 認証情報取得 ─────────────────────────────────────────────
-export async function getMe(): Promise<{ type: 'guest' | 'member'; email: string | null }> {
+export async function getMe(): Promise<{
+  type: 'guest' | 'member'
+  email: string | null
+}> {
   const userId = await getUserId()
   if (!userId) return { type: 'guest', email: null }
   const user = await User.findById(userId)
@@ -70,10 +82,13 @@ export async function register(
   email: string,
   password: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  if (!email.includes('@')) return { ok: false, error: 'メールアドレスが無効です' }
-  if (password.length < 8) return { ok: false, error: 'パスワードは8文字以上です' }
+  if (!email.includes('@'))
+    return { ok: false, error: 'メールアドレスが無効です' }
+  if (password.length < 8)
+    return { ok: false, error: 'パスワードは8文字以上です' }
   const existing = await User.findByEmail(email)
-  if (existing) return { ok: false, error: 'このメールアドレスは既に登録されています' }
+  if (existing)
+    return { ok: false, error: 'このメールアドレスは既に登録されています' }
   const passwordHash = await User.hashPassword(password)
   const code = PendingRegistration.generateCode()
   await PendingRegistration.upsert(email, passwordHash, code)
@@ -88,7 +103,8 @@ export async function activate(
 ): Promise<{ ok: boolean; error?: string }> {
   const pending = await PendingRegistration.findByEmail(email)
   if (!pending) return { ok: false, error: 'コードが無効です' }
-  if (pending.isExpired()) return { ok: false, error: 'コードの有効期限が切れています' }
+  if (pending.isExpired())
+    return { ok: false, error: 'コードの有効期限が切れています' }
   if (pending.code !== code) return { ok: false, error: 'コードが一致しません' }
   const user = await User.create(email, pending.passwordHash)
   await user.verify()
@@ -135,10 +151,13 @@ export async function resetPassword(
   code: string,
   newPassword: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  if (newPassword.length < 8) return { ok: false, error: 'パスワードは8文字以上です' }
+  if (newPassword.length < 8)
+    return { ok: false, error: 'パスワードは8文字以上です' }
   const reset = await PasswordResetCode.findByEmail(email)
-  if (!reset || reset.code !== code) return { ok: false, error: 'コードが無効です' }
-  if (reset.isExpired()) return { ok: false, error: 'コードの有効期限が切れています' }
+  if (!reset || reset.code !== code)
+    return { ok: false, error: 'コードが無効です' }
+  if (reset.isExpired())
+    return { ok: false, error: 'コードの有効期限が切れています' }
   const user = await User.findByEmail(email)
   if (!user) return { ok: false, error: 'ユーザーが見つかりません' }
   await user.setPassword(newPassword)
